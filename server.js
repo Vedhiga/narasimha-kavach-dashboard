@@ -49,19 +49,22 @@ function toISO(d) {
   if (typeof d === "string") return d.slice(0, 10);
   return "";
 }
+function fromDB(rows) {
+  if (!rows || rows.length === 0) return null;
+  return rows;
+}
 
 // ── Summary ────────────────────────────────────────────
 app.get("/api/summary", async (_req, res) => {
   if (DB_READY) {
     const { data } = await supabase.from("devotee_activities").select("*");
-    const rows = data || [];
+    const rows = fromDB(data) || mock.devoteeActivities;
     const totals = rows.reduce((a, r) => ({
-      total_devotees: 0,
       total_chanting: a.total_chanting + (r.chanting || 0),
       total_narasimha_kavach: a.total_narasimha_kavach + (r.narasimha_kavach || 0),
       total_tulasi_parikrama: a.total_tulasi_parikrama + (r.tulasi_parikrama || 0),
       total_tulasi_offered: a.total_tulasi_offered + (r.tulasi_offered || 0),
-    }), { total_devotees: 0, total_chanting: 0, total_narasimha_kavach: 0, total_tulasi_parikrama: 0, total_tulasi_offered: 0 });
+    }), { total_chanting: 0, total_narasimha_kavach: 0, total_tulasi_parikrama: 0, total_tulasi_offered: 0 });
     const uniqueDevotees = new Set(rows.map(r => r.devotee_name));
     const uniqueDates = new Set(rows.map(r => toISO(r.date)));
     return res.json({ ...totals, total_devotees: uniqueDevotees.size, total_dates: uniqueDates.size, total_entries: rows.length });
@@ -80,24 +83,7 @@ app.get("/api/summary", async (_req, res) => {
 });
 
 // ── By Date ────────────────────────────────────────────
-app.get("/api/by-date", async (_req, res) => {
-  if (DB_READY) {
-    const { data } = await supabase.from("devotee_activities").select("*").order("date", { ascending: false }).order("devotee_name");
-    const rows = data || [];
-    const map = {};
-    for (const r of rows) {
-      const key = toISO(r.date);
-      if (!map[key]) map[key] = { date: key, devotees: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
-      map[key].devotees.push(r);
-      map[key].totals.chanting += r.chanting || 0;
-      map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
-      map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
-      map[key].totals.tulasi_offered += r.tulasi_offered || 0;
-    }
-    return res.json(Object.values(map));
-  }
-
-  const rows = mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date) || a.devotee_name.localeCompare(b.devotee_name));
+function groupByDate(rows) {
   const map = {};
   for (const r of rows) {
     const key = toISO(r.date);
@@ -108,28 +94,18 @@ app.get("/api/by-date", async (_req, res) => {
     map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
     map[key].totals.tulasi_offered += r.tulasi_offered || 0;
   }
-  res.json(Object.values(map));
+  return Object.values(map);
+}
+app.get("/api/by-date", async (_req, res) => {
+  if (DB_READY) {
+    const { data } = await supabase.from("devotee_activities").select("*").order("date", { ascending: false }).order("devotee_name");
+    return res.json(fromDB(data) ? groupByDate(data) : groupByDate(mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date) || a.devotee_name.localeCompare(b.devotee_name))));
+  }
+  res.json(groupByDate(mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date) || a.devotee_name.localeCompare(b.devotee_name))));
 });
 
 // ── By Devotee ─────────────────────────────────────────
-app.get("/api/by-devotee", async (_req, res) => {
-  if (DB_READY) {
-    const { data } = await supabase.from("devotee_activities").select("*").order("devotee_name").order("date", { ascending: false });
-    const rows = data || [];
-    const map = {};
-    for (const r of rows) {
-      const key = r.devotee_name;
-      if (!map[key]) map[key] = { devotee_name: key, entries: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
-      map[key].entries.push(r);
-      map[key].totals.chanting += r.chanting || 0;
-      map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
-      map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
-      map[key].totals.tulasi_offered += r.tulasi_offered || 0;
-    }
-    return res.json(Object.values(map));
-  }
-
-  const rows = mock.devoteeActivities.slice().sort((a, b) => a.devotee_name.localeCompare(b.devotee_name) || b.date.localeCompare(a.date));
+function groupByDevotee(rows) {
   const map = {};
   for (const r of rows) {
     const key = r.devotee_name;
@@ -140,14 +116,21 @@ app.get("/api/by-devotee", async (_req, res) => {
     map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
     map[key].totals.tulasi_offered += r.tulasi_offered || 0;
   }
-  res.json(Object.values(map));
+  return Object.values(map);
+}
+app.get("/api/by-devotee", async (_req, res) => {
+  if (DB_READY) {
+    const { data } = await supabase.from("devotee_activities").select("*").order("devotee_name").order("date", { ascending: false });
+    return res.json(fromDB(data) ? groupByDevotee(data) : groupByDevotee(mock.devoteeActivities.slice().sort((a, b) => a.devotee_name.localeCompare(b.devotee_name) || b.date.localeCompare(a.date))));
+  }
+  res.json(groupByDevotee(mock.devoteeActivities.slice().sort((a, b) => a.devotee_name.localeCompare(b.devotee_name) || b.date.localeCompare(a.date))));
 });
 
 // ── Activities (flat list) ─────────────────────────────
 app.get("/api/activities", async (_req, res) => {
   if (DB_READY) {
     const { data } = await supabase.from("devotee_activities").select("*").order("date", { ascending: false }).limit(100);
-    return res.json(data || []);
+    return res.json(fromDB(data) || mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date)));
   }
   res.json(mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date)));
 });
