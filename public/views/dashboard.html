@@ -1,102 +1,138 @@
 <div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="text-center mb-10">
-    <p class="text-lg font-semibold text-orange-600 uppercase tracking-wide">&#x1F64F; Narasimha Kavach &amp; Group Chanting</p>
-    <h1 class="mt-2 text-4xl font-bold text-gray-900">Recovery Dashboard</h1>
-    <p class="text-lg text-gray-500 mt-1">For the Healthy Recovery of Gurumaharaj</p>
-  </div>
-
   <div class="spinner" ng-if="loading"></div>
 
-  <!-- Zoom / Chanting Stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" ng-if="!loading">
-    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Zoom Sessions</p>
-      <p class="mt-2 text-5xl font-bold text-orange-600">{{summary.sessions}}</p>
-      <p class="text-sm text-gray-400 mt-1">Narasimha Kavach sessions</p>
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8" ng-if="!loading">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Devotees</p>
+      <p class="mt-1 text-3xl font-bold text-indigo-600">{{summary.total_devotees || 0}}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Zoom Participants</p>
-      <p class="mt-2 text-5xl font-bold text-blue-600">{{summary.participants}}</p>
-      <p class="text-sm text-gray-400 mt-1">Total attendees</p>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Days</p>
+      <p class="mt-1 text-3xl font-bold text-blue-600">{{summary.total_dates || 0}}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Extra Rounds</p>
-      <p class="mt-2 text-5xl font-bold text-amber-600">{{summary.extraRounds | number}}</p>
-      <p class="text-sm text-gray-400 mt-1">Offline chanting</p>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Chanting</p>
+      <p class="mt-1 text-3xl font-bold text-purple-600">{{summary.total_chanting || 0 | number}}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Combined Efforts</p>
-      <p class="mt-2 text-5xl font-bold text-green-600">{{summary.combined | number}}</p>
-      <p class="text-sm text-gray-400 mt-1">Grand total chanted</p>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">N. Kavach</p>
+      <p class="mt-1 text-3xl font-bold text-red-600">{{summary.total_narasimha_kavach || 0 | number}}</p>
     </div>
-  </div>
-
-  <!-- Daily Activity Stats (from Google Sheets) -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" ng-if="!loading && summary.devotees !== undefined">
-    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">Total Devotees</p>
-      <p class="mt-1 text-3xl font-bold text-indigo-600">{{summary.devotees | number}}</p>
-      <p class="text-xs text-gray-400 mt-1">Daily participants</p>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">T. Parikrama</p>
+      <p class="mt-1 text-3xl font-bold text-emerald-600">{{summary.total_tulasi_parikrama || 0 | number}}</p>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">Chanting Rounds</p>
-      <p class="mt-1 text-3xl font-bold text-purple-600">{{summary.chanting | number}}</p>
-      <p class="text-xs text-gray-400 mt-1">Total rounds</p>
-    </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">Narasimha Kavach</p>
-      <p class="mt-1 text-3xl font-bold text-red-600">{{summary.narasimha_kavach | number}}</p>
-      <p class="text-xs text-gray-400 mt-1">Times recited</p>
-    </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">Tulasi Parikrama</p>
-      <p class="mt-1 text-3xl font-bold text-emerald-600">{{summary.tulasi_parikrama | number}}</p>
-      <p class="text-xs text-gray-400 mt-1">Rounds completed</p>
-    </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-      <p class="text-sm font-medium text-gray-500">Tulasi Offered</p>
-      <p class="mt-1 text-3xl font-bold text-pink-600">{{summary.tulasi_offered | number}}</p>
-      <p class="text-xs text-gray-400 mt-1">Offerings made</p>
+    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm text-center">
+      <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">T. Offered</p>
+      <p class="mt-1 text-3xl font-bold text-pink-600">{{summary.total_tulasi_offered || 0 | number}}</p>
     </div>
   </div>
 
-  <!-- Daily Activities Table -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Daily Activities (Google Sheets)</h2>
-    <p class="text-base text-gray-400 mb-4" ng-if="daily.length===0">No data yet. Data syncs from Google Sheets automatically.</p>
-    <table class="w-full" ng-if="daily.length">
-      <thead><tr class="table-header text-left">
-        <th class="p-3">Date</th><th class="p-3">Devotees</th><th class="p-3">Chanting</th><th class="p-3">N. Kavach</th><th class="p-3">T. Parikrama</th><th class="p-3">T. Offered</th>
-      </tr></thead>
-      <tbody><tr class="table-row" ng-repeat="d in daily">
-        <td class="p-3 font-medium">{{d.date ? d.date.slice(0,10) : '-'}}</td>
-        <td class="p-3">{{d.devotees || 0}}</td>
-        <td class="p-3">{{d.chanting || 0}}</td>
-        <td class="p-3">{{d.narasimha_kavach || 0}}</td>
-        <td class="p-3">{{d.tulasi_parikrama || 0}}</td>
-        <td class="p-3">{{d.tulasi_offered || 0}}</td>
-      </tr></tbody>
-    </table>
+  <!-- View Tabs -->
+  <div class="flex gap-2 mb-6" ng-if="!loading">
+    <button class="px-5 py-2 rounded-lg text-sm font-medium transition"
+      ng-class="view==='byDate' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'"
+      ng-click="view='byDate'">By Date</button>
+    <button class="px-5 py-2 rounded-lg text-sm font-medium transition"
+      ng-class="view==='byDevotee' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'"
+      ng-click="view='byDevotee'">By Devotee</button>
+    <button class="px-5 py-2 rounded-lg text-sm font-medium transition"
+      ng-class="view==='log' ? 'bg-orange-600 text-white shadow' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'"
+      ng-click="view='log'">Date-wise Log</button>
   </div>
 
-  <!-- Activity Feed -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-    <p class="text-base text-gray-400 mb-4" ng-if="activities.length===0">No recent activity.</p>
-    <ul ng-if="activities.length > 0">
-      <li class="flex items-center justify-between py-4 border-b border-gray-100" ng-repeat="a in activities">
-        <div class="flex items-center gap-4">
-          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-                ng-class="{'bg-blue-500': a.type==='zoom', 'bg-amber-500': a.type==='extra'}">
-            {{a.type==='zoom' ? 'Z' : 'E'}}
-          </span>
+  <!-- By Date (collapsible) -->
+  <div ng-if="view==='byDate'">
+    <p class="text-base text-gray-400 mb-4" ng-if="byDate.length===0">No data yet.</p>
+    <div class="space-y-3" ng-if="byDate.length">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" ng-repeat="d in byDate">
+        <button class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition"
+          ng-click="toggle('byDate', d.date)">
           <div>
-            <p class="text-base font-medium text-gray-900">{{a.label}}</p>
-            <p class="text-sm text-gray-400">{{a.date}}</p>
+            <span class="font-semibold text-gray-900 text-lg">{{d.date}}</span>
+            <span class="ml-3 text-sm text-gray-400">{{d.devotees.length}} devotees</span>
           </div>
+          <div class="flex items-center gap-4">
+            <span class="text-sm font-medium text-purple-600">C: {{d.totals.chanting}}</span>
+            <span class="text-sm font-medium text-red-600">N: {{d.totals.narasimha_kavach}}</span>
+            <span class="text-sm font-medium text-emerald-600">P: {{d.totals.tulasi_parikrama}}</span>
+            <span class="text-sm font-medium text-pink-600">O: {{d.totals.tulasi_offered}}</span>
+            <span class="text-gray-400 text-xl transition-transform" ng-class="isExpanded('byDate', d.date) ? 'rotate-180' : ''">&#x25BC;</span>
+          </div>
+        </button>
+        <div ng-if="isExpanded('byDate', d.date)" class="border-t border-gray-100">
+          <table class="w-full">
+            <thead><tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <th class="px-6 py-3">Devotee</th><th class="px-6 py-3">Chanting</th><th class="px-6 py-3">N. Kavach</th><th class="px-6 py-3">T. Parikrama</th><th class="px-6 py-3">T. Offered</th>
+            </tr></thead>
+            <tbody><tr class="border-t border-gray-100 hover:bg-gray-50" ng-repeat="dv in d.devotees">
+              <td class="px-6 py-3 font-medium text-gray-900">{{dv.devotee_name}}</td>
+              <td class="px-6 py-3">{{dv.chanting || 0}}</td>
+              <td class="px-6 py-3">{{dv.narasimha_kavach || 0}}</td>
+              <td class="px-6 py-3">{{dv.tulasi_parikrama || 0}}</td>
+              <td class="px-6 py-3">{{dv.tulasi_offered || 0}}</td>
+            </tr></tbody>
+          </table>
         </div>
-        <span class="text-lg font-semibold text-gray-600">{{a.count}}</span>
-      </li>
-    </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- By Devotee (collapsible) -->
+  <div ng-if="view==='byDevotee'">
+    <p class="text-base text-gray-400 mb-4" ng-if="byDevotee.length===0">No data yet.</p>
+    <div class="space-y-3" ng-if="byDevotee.length">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" ng-repeat="dv in byDevotee">
+        <button class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition"
+          ng-click="toggle('byDevotee', dv.devotee_name)">
+          <div>
+            <span class="font-semibold text-gray-900 text-lg">{{dv.devotee_name}}</span>
+            <span class="ml-3 text-sm text-gray-400">{{dv.entries.length}} days</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-sm font-medium text-purple-600">C: {{dv.totals.chanting}}</span>
+            <span class="text-sm font-medium text-red-600">N: {{dv.totals.narasimha_kavach}}</span>
+            <span class="text-sm font-medium text-emerald-600">P: {{dv.totals.tulasi_parikrama}}</span>
+            <span class="text-sm font-medium text-pink-600">O: {{dv.totals.tulasi_offered}}</span>
+            <span class="text-gray-400 text-xl transition-transform" ng-class="isExpanded('byDevotee', dv.devotee_name) ? 'rotate-180' : ''">&#x25BC;</span>
+          </div>
+        </button>
+        <div ng-if="isExpanded('byDevotee', dv.devotee_name)" class="border-t border-gray-100">
+          <table class="w-full">
+            <thead><tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <th class="px-6 py-3">Date</th><th class="px-6 py-3">Chanting</th><th class="px-6 py-3">N. Kavach</th><th class="px-6 py-3">T. Parikrama</th><th class="px-6 py-3">T. Offered</th>
+            </tr></thead>
+            <tbody><tr class="border-t border-gray-100 hover:bg-gray-50" ng-repeat="e in dv.entries">
+              <td class="px-6 py-3 font-medium text-gray-900">{{e.date ? e.date.slice(0,10) : '-'}}</td>
+              <td class="px-6 py-3">{{e.chanting || 0}}</td>
+              <td class="px-6 py-3">{{e.narasimha_kavach || 0}}</td>
+              <td class="px-6 py-3">{{e.tulasi_parikrama || 0}}</td>
+              <td class="px-6 py-3">{{e.tulasi_offered || 0}}</td>
+            </tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date-wise Log -->
+  <div ng-if="view==='log'">
+    <p class="text-base text-gray-400 mb-4" ng-if="activities.length===0">No data yet.</p>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" ng-if="activities.length">
+      <table class="w-full">
+        <thead><tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <th class="px-6 py-3">Date</th><th class="px-6 py-3">Devotee</th><th class="px-6 py-3">Chanting</th><th class="px-6 py-3">N. Kavach</th><th class="px-6 py-3">T. Parikrama</th><th class="px-6 py-3">T. Offered</th>
+        </tr></thead>
+        <tbody><tr class="border-t border-gray-100 hover:bg-gray-50" ng-repeat="a in activities">
+          <td class="px-6 py-3 font-medium text-gray-900">{{a.date ? a.date.slice(0,10) : '-'}}</td>
+          <td class="px-6 py-3">{{a.devotee_name}}</td>
+          <td class="px-6 py-3">{{a.chanting || 0}}</td>
+          <td class="px-6 py-3">{{a.narasimha_kavach || 0}}</td>
+          <td class="px-6 py-3">{{a.tulasi_parikrama || 0}}</td>
+          <td class="px-6 py-3">{{a.tulasi_offered || 0}}</td>
+        </tr></tbody>
+      </table>
+    </div>
   </div>
 </div>

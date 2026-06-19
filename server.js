@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const path = require("path");
 
 const app = express();
@@ -9,358 +8,161 @@ const PORT = process.env.PORT || 3000;
 const DB_READY = process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes("your-project");
 
 let supabase = null;
-let createClient;
 if (DB_READY) {
-  createClient = require("@supabase/supabase-js").createClient;
+  const { createClient } = require("@supabase/supabase-js");
   supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
   console.log("Connected to Supabase");
 } else {
   console.log("WARNING: Supabase not configured. Running in DEMO mode with mock data.");
-  console.log("Edit .env with your Supabase credentials to use real data.");
 }
 
 app.use(express.json());
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 // ── Mock data for demo mode ───────────────────────────
 let nextId = 100;
 const mock = {
-  users: [
-    { id: "u1", name: "Admin", email: "admin@iskcon.org", role: "admin", created_at: new Date().toISOString() },
-    { id: "u2", name: "Viewer", email: "viewer@iskcon.org", role: "viewer", created_at: new Date().toISOString() },
-  ],
-  zoomSessions: [
-    { id: 1, meeting_id: "DEMO-001", title: "Narasimha Kavach Session", date: "2026-06-15T10:00:00Z", created_at: "2026-06-15T10:00:00Z", attendees: [{ count: 45 }] },
-    { id: 2, meeting_id: "DEMO-002", title: "Narasimha Kavach Session", date: "2026-06-16T10:00:00Z", created_at: "2026-06-16T10:00:00Z", attendees: [{ count: 52 }] },
-    { id: 3, meeting_id: "DEMO-003", title: "Narasimha Kavach Session", date: "2026-06-17T10:00:00Z", created_at: "2026-06-17T10:00:00Z", attendees: [{ count: 38 }] },
-  ],
-  extraRounds: [
-    { id: 1, devotee_name: "Ram Das", rounds: 16, date: "2026-06-17", note: "For Gurumaharaj recovery", added_by: "u1", created_at: "2026-06-17T12:00:00Z" },
-    { id: 2, devotee_name: "Shyama Priya", rounds: 8, date: "2026-06-17", note: "", added_by: "u1", created_at: "2026-06-17T13:00:00Z" },
-    { id: 3, devotee_name: "Govinda Das", rounds: 32, date: "2026-06-18", note: "Extra rounds for Srila Gurudev", added_by: "u1", created_at: "2026-06-18T09:00:00Z" },
-  ],
-  dailyActivities: [
-    { date: "2026-06-01", devotees: 28, chanting: 45, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 18 },
-    { date: "2026-06-02", devotees: 32, chanting: 52, narasimha_kavach: 4, tulasi_parikrama: 15, tulasi_offered: 22 },
-    { date: "2026-06-03", devotees: 25, chanting: 38, narasimha_kavach: 2, tulasi_parikrama: 10, tulasi_offered: 15 },
-    { date: "2026-06-04", devotees: 35, chanting: 60, narasimha_kavach: 5, tulasi_parikrama: 18, tulasi_offered: 25 },
-    { date: "2026-06-05", devotees: 30, chanting: 48, narasimha_kavach: 3, tulasi_parikrama: 14, tulasi_offered: 20 },
-    { date: "2026-06-06", devotees: 40, chanting: 72, narasimha_kavach: 6, tulasi_parikrama: 20, tulasi_offered: 30 },
-    { date: "2026-06-07", devotees: 55, chanting: 85, narasimha_kavach: 8, tulasi_parikrama: 25, tulasi_offered: 35 },
-    { date: "2026-06-08", devotees: 22, chanting: 35, narasimha_kavach: 2, tulasi_parikrama: 8, tulasi_offered: 12 },
-    { date: "2026-06-09", devotees: 38, chanting: 58, narasimha_kavach: 4, tulasi_parikrama: 16, tulasi_offered: 24 },
-    { date: "2026-06-10", devotees: 31, chanting: 50, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 19 },
-    { date: "2026-06-11", devotees: 28, chanting: 42, narasimha_kavach: 3, tulasi_parikrama: 10, tulasi_offered: 16 },
-    { date: "2026-06-12", devotees: 34, chanting: 55, narasimha_kavach: 4, tulasi_parikrama: 14, tulasi_offered: 21 },
-    { date: "2026-06-13", devotees: 42, chanting: 68, narasimha_kavach: 5, tulasi_parikrama: 18, tulasi_offered: 28 },
-    { date: "2026-06-14", devotees: 47, chanting: 75, narasimha_kavach: 6, tulasi_parikrama: 22, tulasi_offered: 32 },
-    { date: "2026-06-15", devotees: 26, chanting: 40, narasimha_kavach: 3, tulasi_parikrama: 10, tulasi_offered: 14 },
-    { date: "2026-06-16", devotees: 33, chanting: 54, narasimha_kavach: 4, tulasi_parikrama: 15, tulasi_offered: 22 },
-    { date: "2026-06-17", devotees: 38, chanting: 62, narasimha_kavach: 5, tulasi_parikrama: 17, tulasi_offered: 26 },
-    { date: "2026-06-18", devotees: 30, chanting: 48, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 20 },
+  devoteeActivities: [
+    { id: 1, date: "2026-06-15", devotee_name: "Ram Das", chanting: 16, narasimha_kavach: 2, tulasi_parikrama: 4, tulasi_offered: 7, created_at: "2026-06-15T10:00:00Z" },
+    { id: 2, date: "2026-06-15", devotee_name: "Shyama Priya", chanting: 8, narasimha_kavach: 1, tulasi_parikrama: 2, tulasi_offered: 3, created_at: "2026-06-15T10:00:00Z" },
+    { id: 3, date: "2026-06-15", devotee_name: "Govinda Das", chanting: 32, narasimha_kavach: 3, tulasi_parikrama: 6, tulasi_offered: 10, created_at: "2026-06-15T10:00:00Z" },
+    { id: 4, date: "2026-06-15", devotee_name: "Madhava Das", chanting: 24, narasimha_kavach: 2, tulasi_parikrama: 5, tulasi_offered: 8, created_at: "2026-06-15T10:00:00Z" },
+    { id: 5, date: "2026-06-16", devotee_name: "Ram Das", chanting: 12, narasimha_kavach: 1, tulasi_parikrama: 3, tulasi_offered: 5, created_at: "2026-06-16T10:00:00Z" },
+    { id: 6, date: "2026-06-16", devotee_name: "Shyama Priya", chanting: 16, narasimha_kavach: 2, tulasi_parikrama: 4, tulasi_offered: 6, created_at: "2026-06-16T10:00:00Z" },
+    { id: 7, date: "2026-06-16", devotee_name: "Gauranga Das", chanting: 40, narasimha_kavach: 4, tulasi_parikrama: 8, tulasi_offered: 12, created_at: "2026-06-16T10:00:00Z" },
+    { id: 8, date: "2026-06-16", devotee_name: "Lalita Devi", chanting: 20, narasimha_kavach: 2, tulasi_parikrama: 5, tulasi_offered: 9, created_at: "2026-06-16T10:00:00Z" },
+    { id: 9, date: "2026-06-16", devotee_name: "Madhava Das", chanting: 32, narasimha_kavach: 3, tulasi_parikrama: 6, tulasi_offered: 11, created_at: "2026-06-16T10:00:00Z" },
+    { id: 10, date: "2026-06-17", devotee_name: "Ram Das", chanting: 16, narasimha_kavach: 2, tulasi_parikrama: 4, tulasi_offered: 7, created_at: "2026-06-17T10:00:00Z" },
+    { id: 11, date: "2026-06-17", devotee_name: "Gauranga Das", chanting: 32, narasimha_kavach: 3, tulasi_parikrama: 6, tulasi_offered: 10, created_at: "2026-06-17T10:00:00Z" },
+    { id: 12, date: "2026-06-17", devotee_name: "Govinda Das", chanting: 24, narasimha_kavach: 2, tulasi_parikrama: 5, tulasi_offered: 8, created_at: "2026-06-17T10:00:00Z" },
+    { id: 13, date: "2026-06-17", devotee_name: "Lalita Devi", chanting: 12, narasimha_kavach: 1, tulasi_parikrama: 3, tulasi_offered: 5, created_at: "2026-06-17T10:00:00Z" },
+    { id: 14, date: "2026-06-17", devotee_name: "Madhava Das", chanting: 16, narasimha_kavach: 2, tulasi_parikrama: 4, tulasi_offered: 6, created_at: "2026-06-17T10:00:00Z" },
+    { id: 15, date: "2026-06-18", devotee_name: "Shyama Priya", chanting: 8, narasimha_kavach: 1, tulasi_parikrama: 2, tulasi_offered: 3, created_at: "2026-06-18T10:00:00Z" },
+    { id: 16, date: "2026-06-18", devotee_name: "Gauranga Das", chanting: 48, narasimha_kavach: 5, tulasi_parikrama: 10, tulasi_offered: 15, created_at: "2026-06-18T10:00:00Z" },
+    { id: 17, date: "2026-06-18", devotee_name: "Ram Das", chanting: 24, narasimha_kavach: 3, tulasi_parikrama: 5, tulasi_offered: 9, created_at: "2026-06-18T10:00:00Z" },
   ],
 };
 
-// ── Auth helpers ──────────────────────────────────────
-async function getUser(req) {
-  const token = req.cookies?.sb_token;
-  if (!token) return null;
-
-  if (DB_READY) {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if (error || !user) return null;
-    const { data: profile } = await supabase.from("profiles").select("role, name").eq("id", user.id).single();
-    return { id: user.id, email: user.email, role: profile?.role || "viewer", name: profile?.name || user.email };
-  }
-
-  // Demo mode: accept any token that looks like "demo-admin" or "demo-viewer"
-  if (token === "demo-admin") return { id: "u1", email: "admin@iskcon.org", role: "admin", name: "Admin" };
-  if (token === "demo-viewer") return { id: "u2", email: "viewer@iskcon.org", role: "viewer", name: "Viewer" };
-  return null;
+// ── Helpers ────────────────────────────────────────────
+function toISO(d) {
+  if (!d) return "";
+  if (typeof d === "string") return d.slice(0, 10);
+  return "";
 }
 
-function requireAuth(roles) {
-  return async (req, res, next) => {
-    const user = await getUser(req);
-    if (!user) return res.status(401).json({ error: "Not logged in" });
-    if (roles && !roles.includes(user.role)) return res.status(403).json({ error: "Forbidden" });
-    req.user = user;
-    next();
-  };
-}
-
-// ── Auth ──────────────────────────────────────────────
-app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
-
+// ── Summary ────────────────────────────────────────────
+app.get("/api/summary", async (_req, res) => {
   if (DB_READY) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return res.status(401).json({ error: error.message });
-    res.cookie("sb_token", data.session.access_token, { httpOnly: true, sameSite: "lax", maxAge: 604800000 });
-    const { data: profile } = await supabase.from("profiles").select("role, name").eq("id", data.user.id).single();
-    return res.json({ user: { id: data.user.id, email: data.user.email, role: profile?.role || "viewer", name: profile?.name || data.user.email } });
+    const { data } = await supabase.from("devotee_activities").select("*");
+    const rows = data || [];
+    const totals = rows.reduce((a, r) => ({
+      total_devotees: 0,
+      total_chanting: a.total_chanting + (r.chanting || 0),
+      total_narasimha_kavach: a.total_narasimha_kavach + (r.narasimha_kavach || 0),
+      total_tulasi_parikrama: a.total_tulasi_parikrama + (r.tulasi_parikrama || 0),
+      total_tulasi_offered: a.total_tulasi_offered + (r.tulasi_offered || 0),
+    }), { total_devotees: 0, total_chanting: 0, total_narasimha_kavach: 0, total_tulasi_parikrama: 0, total_tulasi_offered: 0 });
+    const uniqueDevotees = new Set(rows.map(r => r.devotee_name));
+    const uniqueDates = new Set(rows.map(r => toISO(r.date)));
+    return res.json({ ...totals, total_devotees: uniqueDevotees.size, total_dates: uniqueDates.size, total_entries: rows.length });
   }
 
-  // Demo mode
-  if (email === "admin@iskcon.org" && password === "admin@123") {
-    res.cookie("sb_token", "demo-admin", { httpOnly: true, sameSite: "lax", maxAge: 604800000 });
-    return res.json({ user: mock.users[0] });
-  }
-  if (email === "viewer@iskcon.org" && password === "admin123") {
-    res.cookie("sb_token", "demo-viewer", { httpOnly: true, sameSite: "lax", maxAge: 604800000 });
-    return res.json({ user: mock.users[1] });
-  }
-  res.status(401).json({ error: "Invalid credentials. Demo: admin@iskcon.org / admin123" });
+  const rows = mock.devoteeActivities;
+  const totals = rows.reduce((a, r) => ({
+    total_chanting: a.total_chanting + (r.chanting || 0),
+    total_narasimha_kavach: a.total_narasimha_kavach + (r.narasimha_kavach || 0),
+    total_tulasi_parikrama: a.total_tulasi_parikrama + (r.tulasi_parikrama || 0),
+    total_tulasi_offered: a.total_tulasi_offered + (r.tulasi_offered || 0),
+  }), { total_chanting: 0, total_narasimha_kavach: 0, total_tulasi_parikrama: 0, total_tulasi_offered: 0 });
+  const uniqueDevotees = new Set(rows.map(r => r.devotee_name));
+  const uniqueDates = new Set(rows.map(r => toISO(r.date)));
+  res.json({ ...totals, total_devotees: uniqueDevotees.size, total_dates: uniqueDates.size, total_entries: rows.length });
 });
 
-app.post("/api/auth/logout", (_req, res) => { res.clearCookie("sb_token"); res.json({ ok: true }); });
-app.get("/api/auth/me", requireAuth(), (req, res) => { res.json({ user: req.user }); });
-
-// ── Register ────────────────────────────────────────────
-app.post("/api/auth/register", async (req, res) => {
-  const { name, email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: "Email and password required" });
-  if (password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
-
+// ── By Date ────────────────────────────────────────────
+app.get("/api/by-date", async (_req, res) => {
   if (DB_READY) {
-    // Use admin API to create confirmed user (bypasses email confirmation)
-    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { name: name || email.split("@")[0] }
-    });
-    if (createError) return res.status(400).json({ error: createError.message });
-
-    // Profile is auto-created by the trigger, update the name
-    if (userData.user) {
-      await supabase.from("profiles").update({ name: name || email.split("@")[0], email }).eq("id", userData.user.id);
+    const { data } = await supabase.from("devotee_activities").select("*").order("date", { ascending: false }).order("devotee_name");
+    const rows = data || [];
+    const map = {};
+    for (const r of rows) {
+      const key = toISO(r.date);
+      if (!map[key]) map[key] = { date: key, devotees: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
+      map[key].devotees.push(r);
+      map[key].totals.chanting += r.chanting || 0;
+      map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
+      map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
+      map[key].totals.tulasi_offered += r.tulasi_offered || 0;
     }
-
-    // Now sign them in
-    const anonClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-    const { data: sessionData, error: loginError } = await anonClient.auth.signInWithPassword({ email, password });
-    if (loginError) return res.status(400).json({ error: loginError.message });
-
-    res.cookie("sb_token", sessionData.session.access_token, { httpOnly: true, sameSite: "lax", maxAge: 604800000 });
-    const { data: profile } = await supabase.from("profiles").select("role, name").eq("id", userData.user.id).single();
-    return res.json({ user: { id: userData.user.id, email: userData.user.email, role: profile?.role || "viewer", name: profile?.name || email } });
+    return res.json(Object.values(map));
   }
 
-  // Demo mode
-  if (mock.users.find(u => u.email === email)) return res.status(409).json({ error: "Email already registered" });
-  const newUser = { id: "u" + (++nextId), name: name || email.split("@")[0], email, role: "viewer", created_at: new Date().toISOString() };
-  mock.users.push(newUser);
-  res.cookie("sb_token", "demo-viewer", { httpOnly: true, sameSite: "lax", maxAge: 604800000 });
-  res.json({ user: newUser });
-});
-
-// ── Dashboard ─────────────────────────────────────────
-app.get("/api/dashboard/summary", requireAuth(), async (_req, res) => {
-  if (DB_READY) {
-    const { count: sessions } = await supabase.from("zoom_sessions").select("*", { count: "exact", head: true });
-    const { count: participants } = await supabase.from("zoom_attendance").select("*", { count: "exact", head: true });
-    const { data: roundsData } = await supabase.from("extra_rounds").select("rounds");
-    const totalRounds = roundsData?.reduce((s, r) => s + r.rounds, 0) || 0;
-    const { data: dailyData } = await supabase.from("daily_activities").select("devotees, chanting, narasimha_kavach, tulasi_parikrama, tulasi_offered");
-    const totals = (dailyData || []).reduce((acc, r) => ({
-      devotees: acc.devotees + (r.devotees || 0),
-      chanting: acc.chanting + (r.chanting || 0),
-      narasimha_kavach: acc.narasimha_kavach + (r.narasimha_kavach || 0),
-      tulasi_parikrama: acc.tulasi_parikrama + (r.tulasi_parikrama || 0),
-      tulasi_offered: acc.tulasi_offered + (r.tulasi_offered || 0),
-    }), { devotees: 0, chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 });
-    return res.json({ sessions: sessions || 0, participants: participants || 0, extraRounds: totalRounds, combined: (participants || 0) + totalRounds, ...totals });
+  const rows = mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date) || a.devotee_name.localeCompare(b.devotee_name));
+  const map = {};
+  for (const r of rows) {
+    const key = toISO(r.date);
+    if (!map[key]) map[key] = { date: key, devotees: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
+    map[key].devotees.push(r);
+    map[key].totals.chanting += r.chanting || 0;
+    map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
+    map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
+    map[key].totals.tulasi_offered += r.tulasi_offered || 0;
   }
-  const sessions = mock.zoomSessions.length;
-  const participants = mock.zoomSessions.reduce((s, z) => s + (z.attendees?.[0]?.count || 0), 0);
-  const extraRounds = mock.extraRounds.reduce((s, r) => s + r.rounds, 0);
-  const dailyTotals = mock.dailyActivities.reduce((acc, r) => ({
-    devotees: acc.devotees + r.devotees,
-    chanting: acc.chanting + r.chanting,
-    narasimha_kavach: acc.narasimha_kavach + r.narasimha_kavach,
-    tulasi_parikrama: acc.tulasi_parikrama + r.tulasi_parikrama,
-    tulasi_offered: acc.tulasi_offered + r.tulasi_offered,
-  }), { devotees: 0, chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 });
-  res.json({ sessions, participants, extraRounds, combined: participants + extraRounds, ...dailyTotals });
+  res.json(Object.values(map));
 });
 
-app.get("/api/dashboard/activity", requireAuth(), async (_req, res) => {
+// ── By Devotee ─────────────────────────────────────────
+app.get("/api/by-devotee", async (_req, res) => {
   if (DB_READY) {
-    const { data: z } = await supabase.from("zoom_sessions").select("id, title, date, created_at, attendees:zoom_attendance(count)").order("created_at", { ascending: false }).limit(10);
-    const { data: e } = await supabase.from("extra_rounds").select("id, devotee_name, rounds, date, created_at").order("created_at", { ascending: false }).limit(10);
-    const acts = [
-      ...(z || []).map(r => ({ type: "zoom", label: r.title, date: r.date?.slice(0, 10), count: r.attendees?.[0]?.count || 0, created_at: r.created_at })),
-      ...(e || []).map(r => ({ type: "extra", label: "Devotee: " + r.devotee_name, date: r.date?.slice(0, 10), count: r.rounds, created_at: r.created_at })),
-    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    return res.json(acts.slice(0, 10));
-  }
-  const acts = [
-    ...mock.zoomSessions.map(z => ({ type: "zoom", label: z.title, date: z.date?.slice(0, 10), count: z.attendees?.[0]?.count || 0, created_at: z.created_at })),
-    ...mock.extraRounds.map(e => ({ type: "extra", label: "Devotee: " + e.devotee_name, date: e.date, count: e.rounds, created_at: e.created_at })),
-  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  res.json(acts.slice(0, 10));
-});
-
-// ── Admin: Zoom Upload ────────────────────────────────
-app.post("/api/admin/zoom/upload", requireAuth(["admin"]), async (req, res) => {
-  const { meetingId, title, date, attendees } = req.body;
-  if (!meetingId || !attendees?.length) return res.status(400).json({ error: "meetingId and attendees required" });
-
-  if (DB_READY) {
-    const { data: existing } = await supabase.from("zoom_sessions").select("id").eq("meeting_id", meetingId).maybeSingle();
-    if (existing) return res.status(409).json({ error: "Meeting already uploaded" });
-    const { data: session, error: se } = await supabase.from("zoom_sessions").insert({ meeting_id: meetingId, title, date }).select().single();
-    if (se) return res.status(500).json({ error: se.message });
-
-    function parseJoinTime(timeStr, sessionDate) {
-      if (!timeStr) return null;
-      try {
-        if (/T/.test(timeStr)) return timeStr;
-        const baseDate = sessionDate || new Date().toISOString().slice(0, 10);
-        const d = new Date(baseDate + "T" + timeStr);
-        if (!isNaN(d.getTime())) return d.toISOString();
-        const match = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
-        if (match) {
-          let h = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const s = parseInt(match[3] || "0", 10);
-          const ampm = match[4];
-          if (ampm) {
-            if (/pm/i.test(ampm) && h < 12) h += 12;
-            if (/am/i.test(ampm) && h === 12) h = 0;
-          }
-          const iso = `${baseDate}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}Z`;
-          return iso;
-        }
-      } catch (_) {}
-      return null;
+    const { data } = await supabase.from("devotee_activities").select("*").order("devotee_name").order("date", { ascending: false });
+    const rows = data || [];
+    const map = {};
+    for (const r of rows) {
+      const key = r.devotee_name;
+      if (!map[key]) map[key] = { devotee_name: key, entries: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
+      map[key].entries.push(r);
+      map[key].totals.chanting += r.chanting || 0;
+      map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
+      map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
+      map[key].totals.tulasi_offered += r.tulasi_offered || 0;
     }
-
-    const rows = attendees.map(a => ({
-      session_id: session.id,
-      participant_name: a.name,
-      email: a.email || null,
-      join_time: parseJoinTime(a.joinTime, date),
-      duration_minutes: a.durationMinutes || null
-    }));
-    const { error: ae } = await supabase.from("zoom_attendance").insert(rows);
-    if (ae) return res.status(500).json({ error: ae.message });
-    return res.json({ session, count: rows.length });
+    return res.json(Object.values(map));
   }
 
-  // Demo mode
-  if (mock.zoomSessions.find(s => s.meeting_id === meetingId)) return res.status(409).json({ error: "Meeting already uploaded" });
-  const session = { id: ++nextId, meeting_id: meetingId, title, date, created_at: new Date().toISOString(), attendees: [{ count: attendees.length }] };
-  mock.zoomSessions.unshift(session);
-  res.json({ session, count: attendees.length });
+  const rows = mock.devoteeActivities.slice().sort((a, b) => a.devotee_name.localeCompare(b.devotee_name) || b.date.localeCompare(a.date));
+  const map = {};
+  for (const r of rows) {
+    const key = r.devotee_name;
+    if (!map[key]) map[key] = { devotee_name: key, entries: [], totals: { chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 } };
+    map[key].entries.push(r);
+    map[key].totals.chanting += r.chanting || 0;
+    map[key].totals.narasimha_kavach += r.narasimha_kavach || 0;
+    map[key].totals.tulasi_parikrama += r.tulasi_parikrama || 0;
+    map[key].totals.tulasi_offered += r.tulasi_offered || 0;
+  }
+  res.json(Object.values(map));
 });
 
-app.get("/api/admin/zoom/sessions", requireAuth(["admin"]), async (_req, res) => {
+// ── Activities (flat list) ─────────────────────────────
+app.get("/api/activities", async (_req, res) => {
   if (DB_READY) {
-    const { data, error } = await supabase.from("zoom_sessions").select("id, meeting_id, title, date, created_at, attendees:zoom_attendance(count)").order("created_at", { ascending: false });
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
+    const { data } = await supabase.from("devotee_activities").select("*").order("date", { ascending: false }).limit(100);
+    return res.json(data || []);
   }
-  res.json(mock.zoomSessions);
-});
-
-app.delete("/api/admin/zoom/sessions/:id", requireAuth(["admin"]), async (req, res) => {
-  if (DB_READY) {
-    const { error } = await supabase.from("zoom_sessions").delete().eq("id", req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json({ ok: true });
-  }
-  mock.zoomSessions = mock.zoomSessions.filter(s => s.id !== Number(req.params.id));
-  res.json({ ok: true });
-});
-
-// ── Admin: Extra Rounds ───────────────────────────────
-app.get("/api/admin/extra-rounds", requireAuth(["admin"]), async (_req, res) => {
-  if (DB_READY) {
-    const { data, error } = await supabase.from("extra_rounds").select("id, devotee_name, rounds, date, note, created_at, added_by").order("created_at", { ascending: false });
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
-  }
-  res.json(mock.extraRounds);
-});
-
-app.post("/api/admin/extra-rounds", requireAuth(["admin"]), async (req, res) => {
-  const { devoteeName, rounds, date, note } = req.body;
-  if (!devoteeName || !rounds) return res.status(400).json({ error: "devoteeName and rounds required" });
-
-  if (DB_READY) {
-    const { data, error } = await supabase.from("extra_rounds").insert({ devotee_name: devoteeName, rounds, date, note, added_by: req.user.id }).select().single();
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
-  }
-
-  const entry = { id: ++nextId, devotee_name: devoteeName, rounds, date: date || new Date().toISOString().slice(0, 10), note: note || "", added_by: req.user.id, created_at: new Date().toISOString() };
-  mock.extraRounds.unshift(entry);
-  res.json(entry);
-});
-
-app.put("/api/admin/extra-rounds/:id", requireAuth(["admin"]), async (req, res) => {
-  const { devoteeName, rounds, date, note } = req.body;
-
-  if (DB_READY) {
-    const { data, error } = await supabase.from("extra_rounds").update({ devotee_name: devoteeName, rounds, date, note }).eq("id", req.params.id).select().single();
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
-  }
-
-  const idx = mock.extraRounds.findIndex(e => e.id === Number(req.params.id));
-  if (idx > -1) { mock.extraRounds[idx] = { ...mock.extraRounds[idx], devotee_name: devoteeName, rounds, date, note }; }
-  res.json(mock.extraRounds[idx] || {});
-});
-
-app.delete("/api/admin/extra-rounds/:id", requireAuth(["admin"]), async (req, res) => {
-  if (DB_READY) {
-    const { error } = await supabase.from("extra_rounds").delete().eq("id", req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json({ ok: true });
-  }
-  mock.extraRounds = mock.extraRounds.filter(e => e.id !== Number(req.params.id));
-  res.json({ ok: true });
-});
-
-// ── Admin: Users ──────────────────────────────────────
-app.get("/api/admin/users", requireAuth(["admin"]), async (_req, res) => {
-  if (DB_READY) {
-    const { data, error } = await supabase.from("profiles").select("id, name, email, role, created_at");
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
-  }
-  res.json(mock.users);
-});
-
-app.put("/api/admin/users/:id", requireAuth(["admin"]), async (req, res) => {
-  const { role } = req.body;
-  if (!["viewer", "admin"].includes(role)) return res.status(400).json({ error: "Invalid role" });
-
-  if (DB_READY) {
-    const { data, error } = await supabase.from("profiles").update({ role }).eq("id", req.params.id).select().single();
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data);
-  }
-
-  const u = mock.users.find(u => u.id === req.params.id);
-  if (u) u.role = role;
-  res.json(u || {});
+  res.json(mock.devoteeActivities.slice().sort((a, b) => b.date.localeCompare(a.date)));
 });
 
 // ── Google Sheets Webhook ─────────────────────────────
 app.post("/api/webhook/sheets", async (req, res) => {
-  const { rows, source } = req.body;
+  const { rows, secret } = req.body;
   if (!rows || !Array.isArray(rows)) return res.status(400).json({ error: "rows array required" });
+  if (process.env.SHEETS_SECRET && secret !== process.env.SHEETS_SECRET) return res.status(401).json({ error: "Invalid secret" });
 
   if (DB_READY) {
     for (const row of rows) {
-      const { data: existing } = await supabase.from("daily_activities").select("id").eq("date", row.date).maybeSingle();
+      const { data: existing } = await supabase.from("devotee_activities").select("id").eq("date", row.date).eq("devotee_name", row.devotee_name).maybeSingle();
       if (existing) {
-        await supabase.from("daily_activities").update({
-          devotees: row.devotees || 0,
+        await supabase.from("devotee_activities").update({
           chanting: row.chanting || 0,
           narasimha_kavach: row.narasimha_kavach || 0,
           tulasi_parikrama: row.tulasi_parikrama || 0,
@@ -368,9 +170,9 @@ app.post("/api/webhook/sheets", async (req, res) => {
           updated_at: new Date().toISOString()
         }).eq("id", existing.id);
       } else {
-        await supabase.from("daily_activities").insert({
+        await supabase.from("devotee_activities").insert({
           date: row.date,
-          devotees: row.devotees || 0,
+          devotee_name: row.devotee_name || "",
           chanting: row.chanting || 0,
           narasimha_kavach: row.narasimha_kavach || 0,
           tulasi_parikrama: row.tulasi_parikrama || 0,
@@ -381,24 +183,22 @@ app.post("/api/webhook/sheets", async (req, res) => {
     return res.json({ ok: true, count: rows.length });
   }
 
-  // Demo mode — update mock data
   for (const row of rows) {
-    const idx = mock.dailyActivities.findIndex(a => a.date === row.date);
-    const entry = { date: row.date, devotees: row.devotees || 0, chanting: row.chanting || 0, narasimha_kavach: row.narasimha_kavach || 0, tulasi_parikrama: row.tulasi_parikrama || 0, tulasi_offered: row.tulasi_offered || 0 };
-    if (idx > -1) mock.dailyActivities[idx] = entry;
-    else mock.dailyActivities.unshift(entry);
+    const idx = mock.devoteeActivities.findIndex(a => a.date === row.date && a.devotee_name === row.devotee_name);
+    const entry = {
+      id: ++nextId,
+      date: row.date,
+      devotee_name: row.devotee_name || "",
+      chanting: row.chanting || 0,
+      narasimha_kavach: row.narasimha_kavach || 0,
+      tulasi_parikrama: row.tulasi_parikrama || 0,
+      tulasi_offered: row.tulasi_offered || 0,
+      created_at: new Date().toISOString()
+    };
+    if (idx > -1) mock.devoteeActivities[idx] = entry;
+    else mock.devoteeActivities.unshift(entry);
   }
   res.json({ ok: true, count: rows.length });
-});
-
-// ── Daily Activities API ──────────────────────────────
-app.get("/api/dashboard/daily-activities", requireAuth(), async (_req, res) => {
-  if (DB_READY) {
-    const { data, error } = await supabase.from("daily_activities").select("*").order("date", { ascending: false }).limit(30);
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json(data || []);
-  }
-  res.json(mock.dailyActivities.slice().sort((a, b) => b.date.localeCompare(a.date)));
 });
 
 // ── SPA fallback ──────────────────────────────────────
