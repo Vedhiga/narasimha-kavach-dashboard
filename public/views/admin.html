@@ -1,0 +1,148 @@
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Admin Panel</h1>
+    <p class="text-lg text-gray-500">Manage chanting data</p>
+  </div>
+
+  <div class="flex gap-0 border-b border-gray-200 mb-6">
+    <button class="px-5 py-3 text-base font-medium border-b-2 transition-colors"
+            ng-class="{'border-orange-500 text-orange-700': tab==='zoom', 'border-transparent text-gray-400 hover:text-gray-600': tab!=='zoom'}"
+            ng-click="setTab('zoom')">Zoom Attendance</button>
+    <button class="px-5 py-3 text-base font-medium border-b-2 transition-colors"
+            ng-class="{'border-orange-500 text-orange-700': tab==='rounds', 'border-transparent text-gray-400 hover:text-gray-600': tab!=='rounds'}"
+            ng-click="setTab('rounds')">Extra Rounds</button>
+    <button class="px-5 py-3 text-base font-medium border-b-2 transition-colors"
+            ng-class="{'border-orange-500 text-orange-700': tab==='users', 'border-transparent text-gray-400 hover:text-gray-600': tab!=='users'}"
+            ng-click="setTab('users')">Users</button>
+  </div>
+
+  <!-- ── Zoom Tab ─────────────────────────────────── -->
+  <div ng-if="tab==='zoom'">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-5">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Upload Zoom Attendance</h3>
+      <div class="bg-red-50 text-red-600 text-base p-4 rounded-lg border border-red-200 mb-4" ng-if="zoom.error">{{zoom.error}}</div>
+      <div class="bg-green-50 text-green-600 text-base p-4 rounded-lg border border-green-200 mb-4" ng-if="zoom.success">{{zoom.success}}</div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Meeting ID *</label>
+          <input type="text" ng-model="zoom.meetingId" class="form-input" placeholder="e.g. 84219519419">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Title</label>
+          <input type="text" ng-model="zoom.title" class="form-input" placeholder="Narasimha Kavach Session">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+          <input type="date" ng-model="zoom.date" class="form-input">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-600 mb-1">CSV Content * (paste from Zoom report)</label>
+        <textarea ng-model="zoom.csv" rows="5" class="form-input font-mono text-sm"
+          placeholder="Name (Original Name),User Email,Join Time,Duration (Minutes)&#10;Ram Das,ram@iskcon.org,2026-06-18 10:00,45"></textarea>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary" ng-click="previewCSV()">Preview</button>
+        <button class="btn btn-primary" ng-click="uploadZoom()">Upload Attendance</button>
+      </div>
+
+      <div ng-if="zoom.preview.length" class="mt-5">
+        <p class="text-sm font-medium text-gray-500 mb-2">Preview (first {{zoom.preview.length}} rows):</p>
+        <table class="w-full"><thead><tr class="table-header text-left"><th class="p-2">#</th><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Duration</th></tr></thead>
+          <tbody><tr class="table-row" ng-repeat="p in zoom.preview">
+            <td>{{$index+1}}</td><td>{{p.name}}</td><td>{{p.email}}</td><td>{{p.durationMinutes}} min</td>
+          </tr></tbody></table>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Uploaded Sessions</h3>
+      <p class="text-base text-gray-400" ng-if="zoom.sessions.length===0">No sessions uploaded yet.</p>
+      <table class="w-full" ng-if="zoom.sessions.length">
+        <thead><tr class="table-header text-left"><th class="p-2">Meeting ID</th><th class="p-2">Title</th><th class="p-2">Date</th><th class="p-2">Attendees</th><th class="p-2"></th></tr></thead>
+        <tbody><tr class="table-row" ng-repeat="s in zoom.sessions">
+          <td>{{s.meeting_id}}</td>
+          <td>{{s.title}}</td>
+          <td>{{s.date ? s.date.slice(0,10) : '-'}}</td>
+          <td class="font-semibold">{{s.attendees && s.attendees[0] ? s.attendees[0].count : 0}}</td>
+          <td><button class="btn btn-danger btn-sm" ng-click="deleteSession(s.id)">Delete</button></td>
+        </tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Rounds Tab ───────────────────────────────── -->
+  <div ng-if="tab==='rounds'">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-5">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Add Extra Rounds Entry</h3>
+      <div class="bg-red-50 text-red-600 text-base p-4 rounded-lg border border-red-200 mb-4" ng-if="rounds.error">{{rounds.error}}</div>
+      <div class="bg-green-50 text-green-600 text-base p-4 rounded-lg border border-green-200 mb-4" ng-if="rounds.success">{{rounds.success}}</div>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Devotee Name *</label>
+          <input type="text" ng-model="rounds.form.devoteeName" class="form-input" placeholder="e.g. Ram Das">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Rounds *</label>
+          <input type="number" ng-model="rounds.form.rounds" min="1" class="form-input" placeholder="16">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
+          <input type="date" ng-model="rounds.form.date" class="form-input">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Note (optional)</label>
+          <input type="text" ng-model="rounds.form.note" class="form-input" placeholder="e.g. For Gurumaharaj">
+        </div>
+      </div>
+      <button class="btn btn-primary" ng-click="addRound()">Add Entry</button>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">All Entries</h3>
+      <p class="text-base text-gray-400" ng-if="rounds.entries.length===0">No entries yet.</p>
+      <table class="w-full" ng-if="rounds.entries.length">
+        <thead><tr class="table-header text-left"><th class="p-2">Devotee</th><th class="p-2">Rounds</th><th class="p-2">Date</th><th class="p-2">Note</th><th class="p-2"></th></tr></thead>
+        <tbody>
+          <tr class="table-row" ng-repeat="e in rounds.entries">
+            <td ng-if="!rounds.editing || rounds.editing.id!==e.id" class="font-medium">{{e.devotee_name}}</td>
+            <td ng-if="rounds.editing && rounds.editing.id===e.id"><input type="text" ng-model="rounds.editing.devotee_name" class="form-input"></td>
+            <td ng-if="!rounds.editing || rounds.editing.id!==e.id" class="font-semibold text-orange-600">{{e.rounds}}</td>
+            <td ng-if="rounds.editing && rounds.editing.id===e.id"><input type="number" ng-model="rounds.editing.rounds" class="form-input" style="width:6rem"></td>
+            <td>{{e.date ? e.date.slice(0,10) : '-'}}</td>
+            <td class="text-gray-500">{{e.note || '-'}}</td>
+            <td class="space-x-2">
+              <button class="btn btn-secondary btn-sm" ng-if="!rounds.editing || rounds.editing.id!==e.id" ng-click="editEntry(e)">Edit</button>
+              <button class="btn btn-primary btn-sm" ng-if="rounds.editing && rounds.editing.id===e.id" ng-click="saveEntry()">Save</button>
+              <button class="btn btn-danger btn-sm" ng-if="!rounds.editing || rounds.editing.id!==e.id" ng-click="deleteEntry(e.id)">Delete</button>
+              <button class="btn btn-secondary btn-sm" ng-if="rounds.editing && rounds.editing.id===e.id" ng-click="rounds.editing=null">Cancel</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Users Tab ────────────────────────────────── -->
+  <div ng-if="tab==='users'">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Manage Users</h3>
+      <p class="text-base text-gray-400" ng-if="users.length===0">No users found.</p>
+      <table class="w-full" ng-if="users.length">
+        <thead><tr class="table-header text-left"><th class="p-2">Name</th><th class="p-2">Email</th><th class="p-2">Role</th><th class="p-2"></th></tr></thead>
+        <tbody><tr class="table-row" ng-repeat="u in users">
+          <td class="font-medium">{{u.name || '-'}}</td>
+          <td>{{u.email}}</td>
+          <td>
+            <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold"
+                  ng-class="{'bg-yellow-100 text-yellow-700': u.role==='admin', 'bg-blue-100 text-blue-700': u.role==='viewer'}">{{u.role}}</span>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-sm" ng-if="u.role==='viewer'" ng-click="changeRole(u,'admin')">Make Admin</button>
+            <button class="btn btn-secondary btn-sm" ng-if="u.role==='admin' && u.email !== 'admin@iskcon.org'" ng-click="changeRole(u,'viewer')">Make Viewer</button>
+          </td>
+        </tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
