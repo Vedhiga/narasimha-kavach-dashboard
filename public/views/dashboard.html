@@ -7,21 +7,22 @@
 
   <div class="spinner" ng-if="loading"></div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10" ng-if="!loading">
+  <!-- Zoom / Chanting Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6" ng-if="!loading">
     <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Total Zoom Sessions</p>
+      <p class="text-base font-medium text-gray-500">Zoom Sessions</p>
       <p class="mt-2 text-5xl font-bold text-orange-600">{{summary.sessions}}</p>
-      <p class="text-sm text-gray-400 mt-1">Narasimha Kavach recitations</p>
+      <p class="text-sm text-gray-400 mt-1">Narasimha Kavach sessions</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Total Participants</p>
+      <p class="text-base font-medium text-gray-500">Zoom Participants</p>
       <p class="mt-2 text-5xl font-bold text-blue-600">{{summary.participants}}</p>
-      <p class="text-sm text-gray-400 mt-1">Across all Zoom sessions</p>
+      <p class="text-sm text-gray-400 mt-1">Total attendees</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
-      <p class="text-base font-medium text-gray-500">Extra Rounds Chanted</p>
+      <p class="text-base font-medium text-gray-500">Extra Rounds</p>
       <p class="mt-2 text-5xl font-bold text-amber-600">{{summary.extraRounds | number}}</p>
-      <p class="text-sm text-gray-400 mt-1">Offline chanting entries</p>
+      <p class="text-sm text-gray-400 mt-1">Offline chanting</p>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm card-highlight">
       <p class="text-base font-medium text-gray-500">Combined Efforts</p>
@@ -30,9 +31,58 @@
     </div>
   </div>
 
+  <!-- Daily Activity Stats (from Google Sheets) -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" ng-if="!loading && summary.devotees !== undefined">
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">Total Devotees</p>
+      <p class="mt-1 text-3xl font-bold text-indigo-600">{{summary.devotees | number}}</p>
+      <p class="text-xs text-gray-400 mt-1">Daily participants</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">Chanting Rounds</p>
+      <p class="mt-1 text-3xl font-bold text-purple-600">{{summary.chanting | number}}</p>
+      <p class="text-xs text-gray-400 mt-1">Total rounds</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">Narasimha Kavach</p>
+      <p class="mt-1 text-3xl font-bold text-red-600">{{summary.narasimha_kavach | number}}</p>
+      <p class="text-xs text-gray-400 mt-1">Times recited</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">Tulasi Parikrama</p>
+      <p class="mt-1 text-3xl font-bold text-emerald-600">{{summary.tulasi_parikrama | number}}</p>
+      <p class="text-xs text-gray-400 mt-1">Rounds completed</p>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+      <p class="text-sm font-medium text-gray-500">Tulasi Offered</p>
+      <p class="mt-1 text-3xl font-bold text-pink-600">{{summary.tulasi_offered | number}}</p>
+      <p class="text-xs text-gray-400 mt-1">Offerings made</p>
+    </div>
+  </div>
+
+  <!-- Daily Activities Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Daily Activities (Google Sheets)</h2>
+    <p class="text-base text-gray-400 mb-4" ng-if="daily.length===0">No data yet. Data syncs from Google Sheets automatically.</p>
+    <table class="w-full" ng-if="daily.length">
+      <thead><tr class="table-header text-left">
+        <th class="p-3">Date</th><th class="p-3">Devotees</th><th class="p-3">Chanting</th><th class="p-3">N. Kavach</th><th class="p-3">T. Parikrama</th><th class="p-3">T. Offered</th>
+      </tr></thead>
+      <tbody><tr class="table-row" ng-repeat="d in daily">
+        <td class="p-3 font-medium">{{d.date ? d.date.slice(0,10) : '-'}}</td>
+        <td class="p-3">{{d.devotees || 0}}</td>
+        <td class="p-3">{{d.chanting || 0}}</td>
+        <td class="p-3">{{d.narasimha_kavach || 0}}</td>
+        <td class="p-3">{{d.tulasi_parikrama || 0}}</td>
+        <td class="p-3">{{d.tulasi_offered || 0}}</td>
+      </tr></tbody>
+    </table>
+  </div>
+
+  <!-- Activity Feed -->
   <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
     <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-    <p class="text-base text-gray-400 mb-4" ng-if="activities.length===0">No recent activity yet. Data will appear here after uploads.</p>
+    <p class="text-base text-gray-400 mb-4" ng-if="activities.length===0">No recent activity.</p>
     <ul ng-if="activities.length > 0">
       <li class="flex items-center justify-between py-4 border-b border-gray-100" ng-repeat="a in activities">
         <div class="flex items-center gap-4">

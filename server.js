@@ -40,6 +40,26 @@ const mock = {
     { id: 2, devotee_name: "Shyama Priya", rounds: 8, date: "2026-06-17", note: "", added_by: "u1", created_at: "2026-06-17T13:00:00Z" },
     { id: 3, devotee_name: "Govinda Das", rounds: 32, date: "2026-06-18", note: "Extra rounds for Srila Gurudev", added_by: "u1", created_at: "2026-06-18T09:00:00Z" },
   ],
+  dailyActivities: [
+    { date: "2026-06-01", devotees: 28, chanting: 45, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 18 },
+    { date: "2026-06-02", devotees: 32, chanting: 52, narasimha_kavach: 4, tulasi_parikrama: 15, tulasi_offered: 22 },
+    { date: "2026-06-03", devotees: 25, chanting: 38, narasimha_kavach: 2, tulasi_parikrama: 10, tulasi_offered: 15 },
+    { date: "2026-06-04", devotees: 35, chanting: 60, narasimha_kavach: 5, tulasi_parikrama: 18, tulasi_offered: 25 },
+    { date: "2026-06-05", devotees: 30, chanting: 48, narasimha_kavach: 3, tulasi_parikrama: 14, tulasi_offered: 20 },
+    { date: "2026-06-06", devotees: 40, chanting: 72, narasimha_kavach: 6, tulasi_parikrama: 20, tulasi_offered: 30 },
+    { date: "2026-06-07", devotees: 55, chanting: 85, narasimha_kavach: 8, tulasi_parikrama: 25, tulasi_offered: 35 },
+    { date: "2026-06-08", devotees: 22, chanting: 35, narasimha_kavach: 2, tulasi_parikrama: 8, tulasi_offered: 12 },
+    { date: "2026-06-09", devotees: 38, chanting: 58, narasimha_kavach: 4, tulasi_parikrama: 16, tulasi_offered: 24 },
+    { date: "2026-06-10", devotees: 31, chanting: 50, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 19 },
+    { date: "2026-06-11", devotees: 28, chanting: 42, narasimha_kavach: 3, tulasi_parikrama: 10, tulasi_offered: 16 },
+    { date: "2026-06-12", devotees: 34, chanting: 55, narasimha_kavach: 4, tulasi_parikrama: 14, tulasi_offered: 21 },
+    { date: "2026-06-13", devotees: 42, chanting: 68, narasimha_kavach: 5, tulasi_parikrama: 18, tulasi_offered: 28 },
+    { date: "2026-06-14", devotees: 47, chanting: 75, narasimha_kavach: 6, tulasi_parikrama: 22, tulasi_offered: 32 },
+    { date: "2026-06-15", devotees: 26, chanting: 40, narasimha_kavach: 3, tulasi_parikrama: 10, tulasi_offered: 14 },
+    { date: "2026-06-16", devotees: 33, chanting: 54, narasimha_kavach: 4, tulasi_parikrama: 15, tulasi_offered: 22 },
+    { date: "2026-06-17", devotees: 38, chanting: 62, narasimha_kavach: 5, tulasi_parikrama: 17, tulasi_offered: 26 },
+    { date: "2026-06-18", devotees: 30, chanting: 48, narasimha_kavach: 3, tulasi_parikrama: 12, tulasi_offered: 20 },
+  ],
 };
 
 // ── Auth helpers ──────────────────────────────────────
@@ -143,12 +163,27 @@ app.get("/api/dashboard/summary", requireAuth(), async (_req, res) => {
     const { count: participants } = await supabase.from("zoom_attendance").select("*", { count: "exact", head: true });
     const { data: roundsData } = await supabase.from("extra_rounds").select("rounds");
     const totalRounds = roundsData?.reduce((s, r) => s + r.rounds, 0) || 0;
-    return res.json({ sessions: sessions || 0, participants: participants || 0, extraRounds: totalRounds, combined: (participants || 0) + totalRounds });
+    const { data: dailyData } = await supabase.from("daily_activities").select("devotees, chanting, narasimha_kavach, tulasi_parikrama, tulasi_offered");
+    const totals = (dailyData || []).reduce((acc, r) => ({
+      devotees: acc.devotees + (r.devotees || 0),
+      chanting: acc.chanting + (r.chanting || 0),
+      narasimha_kavach: acc.narasimha_kavach + (r.narasimha_kavach || 0),
+      tulasi_parikrama: acc.tulasi_parikrama + (r.tulasi_parikrama || 0),
+      tulasi_offered: acc.tulasi_offered + (r.tulasi_offered || 0),
+    }), { devotees: 0, chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 });
+    return res.json({ sessions: sessions || 0, participants: participants || 0, extraRounds: totalRounds, combined: (participants || 0) + totalRounds, ...totals });
   }
   const sessions = mock.zoomSessions.length;
   const participants = mock.zoomSessions.reduce((s, z) => s + (z.attendees?.[0]?.count || 0), 0);
   const extraRounds = mock.extraRounds.reduce((s, r) => s + r.rounds, 0);
-  res.json({ sessions, participants, extraRounds, combined: participants + extraRounds });
+  const dailyTotals = mock.dailyActivities.reduce((acc, r) => ({
+    devotees: acc.devotees + r.devotees,
+    chanting: acc.chanting + r.chanting,
+    narasimha_kavach: acc.narasimha_kavach + r.narasimha_kavach,
+    tulasi_parikrama: acc.tulasi_parikrama + r.tulasi_parikrama,
+    tulasi_offered: acc.tulasi_offered + r.tulasi_offered,
+  }), { devotees: 0, chanting: 0, narasimha_kavach: 0, tulasi_parikrama: 0, tulasi_offered: 0 });
+  res.json({ sessions, participants, extraRounds, combined: participants + extraRounds, ...dailyTotals });
 });
 
 app.get("/api/dashboard/activity", requireAuth(), async (_req, res) => {
@@ -313,6 +348,57 @@ app.put("/api/admin/users/:id", requireAuth(["admin"]), async (req, res) => {
   const u = mock.users.find(u => u.id === req.params.id);
   if (u) u.role = role;
   res.json(u || {});
+});
+
+// ── Google Sheets Webhook ─────────────────────────────
+app.post("/api/webhook/sheets", async (req, res) => {
+  const { rows, source } = req.body;
+  if (!rows || !Array.isArray(rows)) return res.status(400).json({ error: "rows array required" });
+
+  if (DB_READY) {
+    for (const row of rows) {
+      const { data: existing } = await supabase.from("daily_activities").select("id").eq("date", row.date).maybeSingle();
+      if (existing) {
+        await supabase.from("daily_activities").update({
+          devotees: row.devotees || 0,
+          chanting: row.chanting || 0,
+          narasimha_kavach: row.narasimha_kavach || 0,
+          tulasi_parikrama: row.tulasi_parikrama || 0,
+          tulasi_offered: row.tulasi_offered || 0,
+          updated_at: new Date().toISOString()
+        }).eq("id", existing.id);
+      } else {
+        await supabase.from("daily_activities").insert({
+          date: row.date,
+          devotees: row.devotees || 0,
+          chanting: row.chanting || 0,
+          narasimha_kavach: row.narasimha_kavach || 0,
+          tulasi_parikrama: row.tulasi_parikrama || 0,
+          tulasi_offered: row.tulasi_offered || 0
+        });
+      }
+    }
+    return res.json({ ok: true, count: rows.length });
+  }
+
+  // Demo mode — update mock data
+  for (const row of rows) {
+    const idx = mock.dailyActivities.findIndex(a => a.date === row.date);
+    const entry = { date: row.date, devotees: row.devotees || 0, chanting: row.chanting || 0, narasimha_kavach: row.narasimha_kavach || 0, tulasi_parikrama: row.tulasi_parikrama || 0, tulasi_offered: row.tulasi_offered || 0 };
+    if (idx > -1) mock.dailyActivities[idx] = entry;
+    else mock.dailyActivities.unshift(entry);
+  }
+  res.json({ ok: true, count: rows.length });
+});
+
+// ── Daily Activities API ──────────────────────────────
+app.get("/api/dashboard/daily-activities", requireAuth(), async (_req, res) => {
+  if (DB_READY) {
+    const { data, error } = await supabase.from("daily_activities").select("*").order("date", { ascending: false }).limit(30);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json(data || []);
+  }
+  res.json(mock.dailyActivities.slice().sort((a, b) => b.date.localeCompare(a.date)));
 });
 
 // ── SPA fallback ──────────────────────────────────────

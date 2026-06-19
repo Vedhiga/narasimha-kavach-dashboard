@@ -65,11 +65,13 @@ app.controller("RegisterCtrl", ["$scope", "$location", "Api", function($scope, $
 app.controller("DashboardCtrl", ["$scope", "$interval", "Api", function($scope, $interval, Api) {
   $scope.summary = {};
   $scope.activities = [];
+  $scope.daily = [];
   $scope.loading = true;
 
   function load() {
     Api.request("GET", "/api/dashboard/summary").then(function(d) { $scope.summary = d; $scope.loading = false; });
     Api.request("GET", "/api/dashboard/activity").then(function(d) { $scope.activities = d; });
+    Api.request("GET", "/api/dashboard/daily-activities").then(function(d) { $scope.daily = d; });
   }
 
   load();
